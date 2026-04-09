@@ -12,7 +12,7 @@ const getAllContact = async (req, res) => {
         const filterUser = await authModel.find({ _id: { $ne: loggedInUserId } }).select("-password")
         res.status(201).json({ success: true, filterUser })
     } catch (error) {
-        res.status(502).json({ success: false, message: error.message })
+        res.status(500).json({ success: false, message: error.message })
     }
 }
 
@@ -36,7 +36,7 @@ const getMessagesByUserId = async (req, res) => {
         res.status(200).json({ success: true, messages })
 
     } catch (error) {
-        res.status(502).json({ success: false, message: error.message })
+        res.status(500).json({ success: false, message: error.message })
     }
 }
 
@@ -84,7 +84,7 @@ const sendMessage = async (req, res) => {
         res.status(201).json({ success: true, newMessage });
 
     } catch (error) {
-        res.status(502).json({ success: false, message: error.message })
+        res.status(500).json({ success: false, message: error.message })
     }
 }
 
@@ -118,7 +118,7 @@ const getChatPartners = async (req, res) => {
 
         res.status(200).json({ success: true, chatPartners })
     } catch (error) {
-        res.status(502).json({ success: false, message: error.message })
+        res.status(500).json({ success: false, message: error.message })
     }
 }
 

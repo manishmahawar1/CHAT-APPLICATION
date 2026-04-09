@@ -4,6 +4,9 @@ import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import sendWelcomeEmail from "../emails/nodeEmailHandler.js"
 import cloudinary from "../lib/cloudinary.js"
+import dotenv from 'dotenv'
+
+dotenv.config()
 // import  sendWelcomeEmail  from "../emails/emailHandler.js"
 
 
@@ -44,7 +47,7 @@ const signup = async (req, res) => {
         });
 
 
-        //    console.log("USER EMAIL 👉", user.email);
+
         // await sendWelcomeEmail(user.email, user.name, process.env.CLIENT_URL);
         try {
             await sendWelcomeEmail(user.email, user.name, process.env.CLIENT_URL);
@@ -79,13 +82,15 @@ const login = async (req, res) => {
         }
 
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" })
+        const isProduction = process.env.NODE_ENV === "production";
+
         res.cookie("token", token, {
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days ins Millisecons
-            httpOnly: true, //prevent XSS attacks: cross-site scripting
-            sameSite: "lax", // CSRF attacks
-            path: "/",
-            secure: process.env.NODE_ENV === "development" ? false : true,
-        })
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            httpOnly: true,
+            sameSite: isProduction ? "None" : "Lax",
+            secure: isProduction,
+            path: "/"
+        });
 
         res.status(200).json({ success: true, message: "user Login Successfully.", user })
     } catch (error) {
@@ -96,10 +101,12 @@ const login = async (req, res) => {
 
 const logout = (req, res) => {
 
+    const isProduction = process.env.NODE_ENV === "production";
+
     res.clearCookie("token", {
         httpOnly: true,
-        sameSite: "lax",
-        secure: false
+        sameSite: isProduction ? "None" : "Lax",
+        secure: isProduction,
     });
 
     res.status(200).json({ success: true, message: "User Logout." })

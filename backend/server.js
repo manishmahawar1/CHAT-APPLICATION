@@ -1,40 +1,52 @@
-import cookieParser from 'cookie-parser';
-import express from 'express';
-import http from "http"
-import dotenv from "dotenv"
-import connectDB from './config/database.js';
-import authRouter from './routes/authRoutes.js';
-import messageRouter from './routes/messageRoutes.js';
-import cors from "cors"
-import { app, server } from './lib/socket.js';
+import express from "express";
+import http from "http";
+import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
+import cors from "cors";
 
+import connectDB from "./config/database.js";
+import authRouter from "./routes/authRoutes.js";
+import messageRouter from "./routes/messageRoutes.js";
+
+import { initSocket } from "./lib/socket.js";
 
 dotenv.config();
 
-// const app = express();
+const app = express();
+const server = http.createServer(app);
+
+// ---------------- DB CONNECTION ----------------
 connectDB();
-//middleware
-app.use(express.json({limit: "10mb"}));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }))
-app.use(cookieParser())
+
+// ---------------- MIDDLEWARE ----------------
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(cookieParser());
+
+// CORS (Production ready)
 app.use(cors({
-    origin: process.env.CLIENT_URL,
+    origin: [
+        "http://localhost:5173",
+        process.env.CLIENT_URL
+    ],
     credentials: true
-}))
+}));
 
+// ---------------- ROUTES ----------------
+app.use("/api/auth", authRouter);
+app.use("/api/messages", messageRouter);
 
+// ---------------- TEST ROUTE ----------------
 app.get("/", (req, res) => {
-    res.send("hello")
-})
+    res.send("Server is running 🚀");
+});
 
+// ---------------- SOCKET INIT ----------------
+initSocket(server);
 
-//end-points
-app.use("/api/auth", authRouter)
-app.use("/api/messages", messageRouter)
+// ---------------- START SERVER ----------------
+const PORT = process.env.PORT || 3000;
 
-
-const port = process.env.PORT || 3000;
-server.listen(port, () => {
-    console.log(`server running on http://localhost:${port}`);
-
-})
+server.listen(PORT, () => {
+    console.log(` Server running on port ${PORT}`);
+});
